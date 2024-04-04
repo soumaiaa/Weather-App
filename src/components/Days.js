@@ -1,7 +1,7 @@
 import React from 'react';
 import dayjs from 'dayjs';
 
-function Days({ nextFiveDays, onDayClick, selectedDay  }) {
+function Days({ onDayClick, selectedDay  }) {
   // Obtenir la date actuelle
   const currentDate = dayjs();
 

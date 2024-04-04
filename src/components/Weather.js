@@ -1,100 +1,71 @@
+// Weather.js
 import React, { useState, useEffect } from 'react';
-import Days from './Days';
-import '../styles/Weather.css';
-import image from '../assets/icons/sun.svg';
-import axios from 'axios';
-import dayjs from 'dayjs';
+import Days from './Days'; // Importer le composant Days
+import '../styles/Weather.css'; // Importer les styles CSS du composant Weather
+import dayjs from 'dayjs'; // Importer dayjs pour la manipulation des dates
 
-const API_KEY = '4143a0e9c20e447cbf7112046240304';
-
-function Weather() {
-    const [weatherData, setWeatherData] = useState(null);
+function Weather({ weatherData, cityName, onCityChange }) {
+    // Définir l'état pour stocker les cinq prochains jours
     const [nextFiveDays, setNextFiveDays] = useState([]);
+    // Définir l'état pour stocker le jour sélectionné
     const [selectedDay, setSelectedDay] = useState(null);
+    // Définir l'état pour stocker les données météorologiques du jour sélectionné
     const [selectedDayWeather, setSelectedDayWeather] = useState(null);
-    const [cityName, setCityName] = useState(''); // État pour stocker le nom de la ville saisie par l'utilisateur
 
+    // Effet secondaire pour mettre à jour les données lorsque les données météorologiques changent
     useEffect(() => {
-        const fetchWeatherData = async (city) => {
-            try {
-                const response = await axios.get(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=5`);
-                setWeatherData(response.data);
-                console.log('Prévisions météo pour 5 jours:', response.data);
-
-                // Calculer les 5 prochains jours
-                const today = dayjs();
-                const nextDays = [];
-                for (let i = 0; i < 5; i++) {
-                    const nextDay = today.add(i, 'day').format('dddd');
-                    nextDays.push(nextDay);
-                }
-                setNextFiveDays(nextDays);
-            } catch (error) {
-                console.error('Erreur lors de la récupération des données météo:', error);
-            }
-        };
-
-        // Si cityName est vide, alors on utilise la géolocalisation
-        if (cityName === '') {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    const { latitude, longitude } = position.coords;
-                    axios.get(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${latitude},${longitude}`)
-                        .then(response => {
-                            const city = response.data.location.name;
-                            fetchWeatherData(city);
-                        })
-                        .catch(error => {
-                            console.error('Erreur lors de la récupération des données météo:', error);
-                        });
-                });
-            } else {
-                console.log("La géolocalisation n'est pas prise en charge par ce navigateur.");
-            }
-        } else {
-            // Sinon, on utilise le nom de la ville saisi par l'utilisateur
-            fetchWeatherData(cityName);
-        }
-    }, [cityName]);
-
-    useEffect(() => {
+        // Vérifier si des données météorologiques sont disponibles et s'il y a des prévisions pour au moins un jour
         if (weatherData && weatherData.forecast && weatherData.forecast.forecastday.length > 0) {
+            // Extraire la date du premier jour de prévision et la formater pour obtenir le nom du jour
             setSelectedDay(dayjs(weatherData.forecast.forecastday[0].date).format('dddd'));
+            // Mettre à jour les données météorologiques du jour sélectionné avec les données du premier jour de prévision
             setSelectedDayWeather(weatherData.forecast.forecastday[0]);
         }
-    }, [weatherData]);
+    }, [weatherData]); // Déclencher l'effet secondaire lorsque les données météorologiques changent
 
+    // Fonction pour gérer le clic sur un jour de la semaine
     const handleDayClick = (day) => {
+        // Mettre à jour le jour sélectionné avec le jour cliqué
         setSelectedDay(day);
+        // Trouver les données météorologiques du jour sélectionné à partir des données météorologiques disponibles
         const selectedDayData = weatherData?.forecast?.forecastday.find((item) => dayjs(item.date).format('dddd') === day);
-        setSelectedDayWeather(selectedDayData);
-    };
+  
+    // Mettre à jour les données météorologiques du jour sélectionné avec les données trouvées
+    setSelectedDayWeather(selectedDayData);
+};
 
-    const handleCityInputChange = (event) => {
-        setCityName(event.target.value);
-    };
+// Fonction pour gérer le changement du nom de la ville
+const handleCityInputChange = (event) => {
+    // Appeler la fonction de gestion du changement de ville passée en tant que prop
+    onCityChange(event);
+};
 
-    return (
-        <div className="row">
-            <div className="col s12 m6 push-m3">
-                <div className="weather card blue-grey darken-1">
-                    <div className="card-content white-text">
-                        <span className="card-title">Météo</span>
-                        <input className='input' type="text" placeholder="Entrez le nom de la ville" value={cityName} onChange={handleCityInputChange} />
-                        <p><img className='image' src={selectedDayWeather && selectedDayWeather.day.condition.icon} alt="Weather icon" /></p>
-                        {selectedDayWeather && (
-                            <>                             
-                                <span className="temperature">{selectedDayWeather.day.avgtemp_c}°</span>
-                                <div className="wind">Vent {selectedDayWeather.day.maxwind_kph} km/h ({selectedDayWeather.day.wind_dir})</div>
-                                {/* Afficher d'autres données météorologiques selon vos besoins */}
-                            </>
-                        )}
-                    </div>
-                    <Days nextFiveDays={nextFiveDays} onDayClick={handleDayClick} selectedDay={selectedDay} />
+// Rendu du composant
+return (
+    <div className="row">
+        <div className="col s12 m6 push-m3">
+            <div className="weather card blue-grey darken-1">
+                <div className="card-content white-text">
+                    <span className="card-title">Météo</span>
+                    {/* Champ de saisie pour entrer le nom de la ville avec gestion du changement */}
+                    <input className='input' type="text" placeholder="Entrez le nom de la ville" value={cityName} onChange={handleCityInputChange} />
+                    {/* Affichage de l'icône météo */}
+                    <p><img className='image' src={selectedDayWeather && selectedDayWeather.day.condition.icon} alt="Weather icon" /></p>
+                    {/* Affichage des données météorologiques du jour sélectionné */}
+                    {selectedDayWeather && (
+                        <>                             
+                            <span className="temperature">{selectedDayWeather.day.avgtemp_c}°</span>
+                            <div className="wind">Vent {selectedDayWeather.day.maxwind_kph} km/h ({selectedDayWeather.day.wind_dir})</div>
+                            {/* Afficher d'autres données météorologiques selon vos besoins */}
+                        </>
+                    )}
                 </div>
+                {/* Afficher les jours de la semaine avec possibilité de sélection */}
+                <Days nextFiveDays={nextFiveDays} onDayClick={handleDayClick} selectedDay={selectedDay} />
             </div>
         </div>
-    );
+    </div>
+);
 }
 
-export default Weather;
+export default Weather; // Exporter le composant Weather
