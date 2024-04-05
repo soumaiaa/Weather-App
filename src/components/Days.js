@@ -29,7 +29,11 @@ function Days({ onDayClick, selectedDay  }) {
   return (
     <div className="card-action">
       {nextFiveDaysArray.map((day, index) => (
-        <a key={index} href="#" style={{ fontWeight: day === selectedDay ? 'bold' : 'normal' }} onClick={() => handleClick(day)}>
+        <a 
+        key={index} 
+        href="#" 
+        style={{ fontWeight: day === selectedDay ? 'bold' : 'normal' }} 
+        onClick={() => handleClick(day)}>
           {day}
         </a>
       ))}

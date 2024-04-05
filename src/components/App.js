@@ -77,7 +77,11 @@ function App() {
         <div className="App">
             <Header /> {/* Afficher le composant Header */}
             {/* Afficher le composant Weather avec les données météorologiques, le nom de la ville et la fonction de gestion du changement de ville */}
-            <Weather weatherData={weatherData} cityName={cityName} onCityChange={handleCityInputChange} />
+            <Weather
+                weatherData={weatherData}
+                cityName={cityName}
+                onCityChange={handleCityInputChange}
+            />
         </div>
     );
 }
